@@ -10,8 +10,8 @@ from logging.handlers import RotatingFileHandler
 #
 # Constants
 #
-CONFIG_PATH = r'GoDaddyDynDNS.ini'
-LOG_FILENAME = r'GoDaddyDynDNS.log'
+CONFIG_PATH = r'LocalConfig/GoDaddyDynDNS.ini'
+LOG_FILENAME = r'LocalConfig/GoDaddyDynDNS.log'
 '''
 LOG_FILENAME = 'GoDaddyDynDNS.log' for Windows 
 LOG_FILENAME = '/var/log/GoDaddyDynDNS.log' for Linux
@@ -43,8 +43,9 @@ logger.addHandler(fh)
 config = configparser.ConfigParser()
 config.read(CONFIG_PATH)
 
-DOMAIN = config['DOMAIN']['Domain_Name']
-A_RECORD = config['DOMAIN']['A_Record']
+DOMAINS = config.items('DOMAINS')
+RECORD_TYPE = config['RECORD']['Record_Type']
+RECORD_NAME = config['RECORD']['Record_Name']
 API_KEY = config['CREDENTIALS']['GoDaddyAPI_Key']
 API_SECRET = config['CREDENTIALS']['GoDaddyAPI_Secret']
 
@@ -53,19 +54,30 @@ try:
     publicIP = get_public_ip()
     logger.info('Got Public IP: ' + publicIP)
 
-    logger.info('Getting GoDaddy Records')
-    godaddy_acct = Account(api_key=API_KEY, api_secret=API_SECRET)
-    client = Client(godaddy_acct)
-    records = client.get_records(DOMAIN, record_type='A', name=A_RECORD)
-
-    for record in records:
-        if publicIP != record["data"]:
-            updateResult = client.update_record_ip(publicIP, DOMAIN, name=A_RECORD, record_type='A')
-            if updateResult is True:
-                logger.info('DNS Record Updated: ' + record["data"] + ' to ' + publicIP)
-        else:
-            logger.info('DNS Record Update not Needed: ' + publicIP)
-
-except Exception:
-    logger.error(sys.exec_info()[1])
+except Exception as e:
+    logger.error('Error Getting Public IP: ' + e.__str__())
     sys.exit()
+
+for DOMAIN in DOMAINS:
+    try:
+        logger.info('Getting GoDaddy Records for ' + DOMAIN[1])
+        godaddy_acct = Account(api_key=API_KEY, api_secret=API_SECRET)
+        client = Client(godaddy_acct)
+        records = client.get_records(DOMAIN[1], record_type=RECORD_TYPE, name=RECORD_NAME)
+        try:
+            for record in records:
+                if publicIP != record["data"]:
+                    updateResult = client.update_record_ip(publicIP, DOMAIN[1], name=RECORD_NAME, record_type=RECORD_TYPE)
+                    if updateResult is True:
+                        logger.info('DNS Record Updated: ' + record["data"] + ' to ' + publicIP)
+                else:
+                    logger.info('DNS Record Update not Needed: ' + publicIP)
+
+        except Exception as e:
+            logger.error('Error Trying to Update DNS Record' + e.__str__())
+            sys.exit()
+
+    except Exception as e:
+        logger.error('Error Getting GoDaddy Records: ' + e.__str__())
+
+
