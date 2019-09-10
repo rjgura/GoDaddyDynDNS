@@ -43,11 +43,15 @@ logger.addHandler(fh)
 config = configparser.ConfigParser()
 config.read(CONFIG_PATH)
 
-DOMAINS = config.items('DOMAINS')
-RECORD_TYPE = config['RECORD']['Record_Type']
-RECORD_NAME = config['RECORD']['Record_Name']
-API_KEY = config['CREDENTIALS']['GoDaddyAPI_Key']
-API_SECRET = config['CREDENTIALS']['GoDaddyAPI_Secret']
+try:
+    DOMAINS = config.items('DOMAINS')
+    RECORD_TYPE = config['RECORD']['Record_Type']
+    RECORD_NAME = config['RECORD']['Record_Name']
+    API_KEY = config['CREDENTIALS']['GoDaddyAPI_Key']
+    API_SECRET = config['CREDENTIALS']['GoDaddyAPI_Secret']
+except KeyError:
+    logger.error('Error loading ini: check ini exists and settings are correct')
+    quit()
 
 try:
     logger.info('Getting Public IP')
