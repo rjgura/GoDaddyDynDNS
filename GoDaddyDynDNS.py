@@ -26,18 +26,21 @@ FORMATTER = logging.Formatter('[%(asctime)s][%(levelname)s]: %(message)s', DATE_
 #
 # Setup Logging
 #
+logger = logging.getLogger('logger')
+logger.setLevel(logging.DEBUG)
+
 sh = logging.StreamHandler(sys.stdout)
 sh.setLevel(logging.INFO)
 sh.setFormatter(FORMATTER)
+logger.addHandler(sh)
 
 fh = RotatingFileHandler(LOG_FILENAME, mode='a', maxBytes=5*1024*1024, backupCount=2, encoding=None, delay=0)
 fh.setLevel(logging.DEBUG)
 fh.setFormatter(FORMATTER)
-
-logger = logging.getLogger('logger')
-logger.setLevel(logging.DEBUG)
-logger.addHandler(sh)
 logger.addHandler(fh)
+
+if sys.platform[0:5] == 'linux' and not sys.stdout.isatty():
+    logger.removeHandler(sh)
 
 #
 # Import GoDaddyDynDNS.ini
@@ -89,5 +92,3 @@ for DOMAIN in DOMAINS:
         logger.error('Error Getting GoDaddy Records: ' + e.__str__())
 
 logger.info("Code Executed in %s Seconds", (time.time() - start_time))
-
-
