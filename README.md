@@ -1,3 +1,7 @@
+# Archived this Repository
+
+I've decided to archive this repo because GoDaddy quietly changed the policy for using their API.  They no longer allow users with only a few domains to have free access to their API.  I moved all my domains to Cloudflare and forked this into a new script called [CloudflareDynDNS]([https://github.com/cloudflare/cloudflare-python](https://github.com/rjgura/CloudflareDynDNS) to use Cloudflare's API to update their nameservers.
+
 # GoDaddyDynDNS
 
 Script to keep GoDaddy's DNS records updated with your current external IP address.  This creates a Dynamic DNS solution for domain names registered with GoDaddy and using their nameservers.
